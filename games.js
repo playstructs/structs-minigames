@@ -19,4 +19,10 @@ export const GAMES = [
     tagline: 'Fight off cyber attacks until the fleet returns.',
     formatScore: (s) => (s == null ? '--' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`),
   },
+  {
+    id: 'last-line-of-defense',
+    name: 'Last Line of Defense',
+    tagline: 'Shoot down raiders before they slip past. Unlocks with the PDC.',
+    formatScore: (s) => (s == null ? '--' : `${s} pts`),
+  },
 ];
