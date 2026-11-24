@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf8ee">
+  <title>Containment</title>
+  <link rel="stylesheet" href="../shared/ui.css">
+  <style>
+    :root {
+      --mono: "Courier New", Courier, monospace;
+    }
+
+    /* ---- Fleet countdown (top bar) ---------------------------------------- */
+    .hud {
+      flex: 1;
+      max-width: 320px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: var(--wobbly);
+      box-shadow: 3px 4px 0 rgba(36, 34, 31, 0.85);
+      padding: 4px 10px;
+      min-height: 44px;
+      font-size: 1.05rem;
+      white-space: nowrap;
+    }
+    .hud .fleet-time {
+      font-variant-numeric: tabular-nums;
+      min-width: 3.6ch;
+    }
+    .hud .track {
+      position: relative;
+      flex: 1;
+      height: 12px;
+      border-top: 2px dashed var(--pencil);
+      margin-top: 2px;
+    }
+    .hud .ship {
+      position: absolute;
+      top: -11px;
+      left: 0;
+      font-size: 1rem;
+      transform: translateX(-50%) scaleX(-1);
+    }
+    .hud .base {
+      position: absolute;
+      top: -9px;
+      right: -4px;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    /* ---- Console layout ----------------------------------------------------- */
+    .console {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: calc(env(safe-area-inset-top, 0px) + 62px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 74px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1.15fr) minmax(0, 1fr);
+      grid-template-areas: "server" "procs" "log";
+      gap: 8px;
+    }
+    @media (min-width: 900px) {
+      .console {
+        left: 24px;
+        right: 24px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas: "server log" "procs log";
+        gap: 14px;
+      }
+    }
+
+    .panel {
+      position: relative;
+      min-height: 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 2.5px solid var(--ink);
+      border-radius: var(--wobbly-2);
+      box-shadow: 3px 4px 0 rgba(36, 34, 31, 0.7);
+      padding: 6px 10px 8px;
+    }
+    .panel h2 {
+      margin: 0 0 4px;
+      font-weight: normal;
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .panel h2 small {
+      font-size: 0.85rem;
+      color: var(--pencil);
+    }
+
+    /* ---- Server: CPU + memory ----------------------------------------------- */
+    .server { grid-area: server; }
+
+    .cpu-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+    .cpu-bar {
+      position: relative;
+      flex: 1;
+      height: 18px;
+      border: 2px solid var(--ink);
+      border-radius: var(--wobbly);
+      background: var(--paper);
+      overflow: hidden;
+    }
+    .cpu-bar .fill {
+      height: 100%;
+      width: 0;
+      background: repeating-linear-gradient(-45deg, var(--green) 0 6px, #5cbf78 6px 12px);
+      transition: width 0.15s;
+    }
+    .cpu-bar.hot .fill {
+      background: repeating-linear-gradient(-45deg, var(--red) 0 6px, #ec6a55 6px 12px);
+    }
+    .cpu-pct {
+      min-width: 4.6ch;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .stamp {
+      position: absolute;
+      right: 10px;
+      top: 2px;
+      color: var(--red);
+      border: 2.5px solid var(--red);
+      border-radius: 4px;
+      padding: 0 6px;
+      font-size: 0.95rem;
+      transform: rotate(-6deg);
+      background: rgba(255, 255, 255, 0.85);
+      display: none;
+    }
+    .throttled .stamp { display: block; animation: thump 0.9s infinite; }
+    @keyframes thump { 50% { transform: rotate(-6deg) scale(1.08); } }
+
+    .mem-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      margin: 6px 0 3px;
+    }
+    .breach-eta { color: var(--pencil); }
+    .breach-eta.danger { color: var(--red); }
+
+    .mem-grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 2px;
+    }
+    .mem-grid .cell {
+      aspect-ratio: 1;
+      border: 1.5px solid rgba(36, 34, 31, 0.55);
+      border-radius: 3px;
+      background: var(--paper);
+      cursor: pointer;
+      padding: 0;
+      min-width: 0;
+      font-size: 0;
+    }
+    .mem-grid .cell.av {
+      background: repeating-linear-gradient(45deg, var(--yellow) 0 3px, #fff 3px 6px);
+    }
+    .mem-grid .cell.danger-zone { border-color: rgba(217, 65, 43, 0.6); }
+    .mem-grid .cell.sel { outline: 2.5px solid var(--ink); outline-offset: -1px; }
+    .breached .mem-grid .cell { animation: alarm 0.3s steps(2) infinite; }
+    @keyframes alarm { 50% { background: var(--red); } }
+
+    /* ---- Process list ---------------------------------------------------------- */
+    .procs { grid-area: procs; }
+    .proc-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    .proc-head, .proc {
+      display: grid;
+      grid-template-columns: 14px minmax(0, 1fr) 70px 46px;
+      align-items: center;
+      gap: 8px;
+    }
+    .proc-head {
+      font-size: 0.8rem;
+      color: var(--pencil);
+      padding: 0 6px 2px;
+      border-bottom: 1.5px solid var(--ink);
+    }
+    .proc {
+      position: relative;
+      min-height: 36px;
+      padding: 2px 6px;
+      border-bottom: 1px dashed rgba(36, 34, 31, 0.25);
+      cursor: pointer;
+      font-size: 0.98rem;
+    }
+    .proc .swatch {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--ink);
+      border-radius: 3px;
+    }
+    .proc .name {
+      font-family: var(--mono);
+      font-size: 0.92rem;
+      font-weight: bold;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .proc .name .note {
+      font-family: var(--hand);
+      font-weight: normal;
+      font-size: 0.8rem;
+      color: var(--pencil);
+      margin-left: 4px;
+    }
+    .proc .cpu {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .proc .cpu i {
+      display: block;
+      height: 8px;
+      background: var(--pencil);
+      border-radius: 2px;
+      max-width: 34px;
+    }
+    .proc .mem {
+      text-align: right;
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .proc .mem.up::after { content: " ↑"; color: var(--red); }
+    .proc.down { opacity: 0.45; }
+    .proc.sel { background: #fffbe0; outline: 2.5px solid var(--ink); outline-offset: -2px; border-radius: 6px; }
+    .proc .scan {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 4px;
+      background: var(--yellow);
+      border-top: 1px solid var(--ink);
+    }
+
+    /* ---- Log ------------------------------------------------------------------ */
+    .log { grid-area: log; }
+    .log-lines {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      background:
+        repeating-linear-gradient(#fff 0 calc(1.45 * 0.78rem - 1px), rgba(90, 140, 200, 0.18) calc(1.45 * 0.78rem - 1px) calc(1.45 * 0.78rem));
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .log-line {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 2px;
+    }
+    .log-line[data-ip] { cursor: pointer; }
+    .log-line .ip { font-weight: bold; }
+    .log-line.sys { color: var(--blue); }
+    .log-line.warn { color: var(--red); }
+    .log-line.good { color: var(--green); }
+    .log-line.hl { background: rgba(244, 196, 48, 0.45); }
+    .log-line.banned { text-decoration: line-through; color: var(--pencil); }
+    .log.paused h2 small::after { content: " · paused"; color: var(--red); }
+
+    /* ---- Action bar ------------------------------------------------------------ */
+    .action-bar {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: var(--wobbly);
+      box-shadow: 3px 4px 0 rgba(36, 34, 31, 0.85);
+      padding: 6px 8px 6px 12px;
+      z-index: 4;
+    }
+    @media (min-width: 900px) {
+      .action-bar { left: 24px; right: auto; width: calc(50% - 31px); }
+    }
+    .action-bar .target {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.95rem;
+      line-height: 1.15;
+      overflow: hidden;
+    }
+    .action-bar .target b {
+      font-family: var(--mono);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .action-bar .target .hint { color: var(--pencil); }
+    .action-bar .paper-btn {
+      font-size: 1rem;
+      padding: 0.25em 0.7em;
+      min-height: 44px;
+      box-shadow: 2px 3px 0 rgba(36, 34, 31, 0.85);
+    }
+    .action-bar .paper-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .paper-btn.kill { background: #ffd9d2; }
+    .paper-btn.av { background: #fff3c4; }
+    .paper-btn.ban { background: #d8e6f7; }
+
+    .card .tools {
+      text-align: left;
+      margin: 8px 0 0;
+      padding-left: 1.1em;
+      font-size: 0.95rem;
+      color: var(--pencil);
+      line-height: 1.35;
+    }
+    .card .tools li { margin: 3px 0; }
+
+    @media (max-width: 360px) {
+      .top-bar .paper-btn.small span { display: none; }
+    }
+  </style>
+</head>
+<body class="graph-paper">
+  <main class="game-shell" id="shell">
+    <div class="console" id="console">
+      <section class="panel server" id="server" aria-label="Server status">
+        <span class="stamp">THROTTLED</span>
+        <h2>Server</h2>
+        <div class="cpu-row">
+          <span>CPU</span>
+          <div class="cpu-bar" id="cpu-bar"><div class="fill"></div></div>
+          <span class="cpu-pct" id="cpu-pct">0%</span>
+        </div>
+        <div class="mem-head">
+          <span>Memory <b id="mem-used">0</b>/<span id="mem-total">64</span></span>
+          <span class="breach-eta" id="breach-eta"></span>
+        </div>
+        <div class="mem-grid" id="mem-grid" aria-label="Memory map"></div>
+      </section>
+
+      <section class="panel procs" aria-label="Processes">
+        <h2>Processes <small>tap to select</small></h2>
+        <div class="proc-head"><span></span><span>name</span><span>CPU</span><span style="text-align:right">MEM</span></div>
+        <ul class="proc-list" id="proc-list"></ul>
+      </section>
+
+      <section class="panel log" id="log-panel" aria-label="System log">
+        <h2>Log <small>hold to pause · tap a line</small></h2>
+        <div class="log-lines" id="log" aria-live="off"></div>
+      </section>
+    </div>
+
+    <div class="action-bar" id="action-bar"></div>
+    <div class="overlay" id="overlay" hidden></div>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

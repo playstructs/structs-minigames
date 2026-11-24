@@ -13,4 +13,10 @@ export const GAMES = [
     tagline: "Scrub the floors. Don't touch the Alpha Ore.",
     formatScore: (s) => (s == null ? '--' : `${s}%`),
   },
+  {
+    id: 'containment',
+    name: 'Containment',
+    tagline: 'Fight off cyber attacks until the fleet returns.',
+    formatScore: (s) => (s == null ? '--' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`),
+  },
 ];
