@@ -1,0 +1,295 @@
+/* Shared paper-prototype UI for every minigame page. */
+
+:root {
+  --paper: #fbf8ee;
+  --grid: rgba(90, 140, 200, 0.16);
+  --grid-major: rgba(90, 140, 200, 0.3);
+  --ink: #24221f;
+  --pencil: #55534e;
+  --red: #d9412b;
+  --green: #2e9e4f;
+  --yellow: #f4c430;
+  --blue: #2f6fc0;
+  --cardboard: #c9a26b;
+  --cardboard-dark: #a9824d;
+  --hand: "Marker Felt", "Chalkboard SE", "Comic Sans MS", "Comic Neue", "Segoe Print", cursive;
+  --wobbly: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --wobbly-2: 15px 255px 15px 225px / 225px 15px 255px 15px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--hand);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+.graph-paper {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 10px 10px, 10px 10px;
+}
+
+/* ---- Game page shell ---------------------------------------------------- */
+
+.game-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.game-shell canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.top-bar > * {
+  pointer-events: auto;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+
+.paper-btn {
+  font: inherit;
+  font-size: 1.15rem;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: var(--wobbly);
+  padding: 0.45em 1.1em;
+  box-shadow: 3px 4px 0 rgba(36, 34, 31, 0.85);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  min-height: 44px;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.paper-btn:active {
+  transform: translate(2px, 3px);
+  box-shadow: 1px 1px 0 rgba(36, 34, 31, 0.85);
+}
+
+.paper-btn:focus-visible {
+  outline: 3px dashed var(--blue);
+  outline-offset: 4px;
+}
+
+.paper-btn.primary {
+  background: var(--yellow);
+  font-size: 1.4rem;
+}
+
+.paper-btn.small {
+  font-size: 1rem;
+  padding: 0.3em 0.75em;
+  min-height: 40px;
+}
+
+.paper-btn.icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--wobbly-2);
+}
+
+.paper-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---- Overlay card (start / results) -------------------------------------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(251, 248, 238, 0.72);
+  z-index: 10;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.card {
+  position: relative;
+  width: min(100%, 380px);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: var(--wobbly-2);
+  box-shadow: 5px 7px 0 rgba(36, 34, 31, 0.85);
+  padding: 26px 22px 22px;
+  text-align: center;
+  transform: rotate(-0.8deg);
+}
+
+.card::before {
+  /* strip of tape holding the card to the paper */
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 96px;
+  height: 26px;
+  transform: translateX(-50%) rotate(2deg);
+  background: rgba(244, 233, 180, 0.85);
+  border: 1px solid rgba(160, 140, 80, 0.35);
+}
+
+.card h1,
+.card h2 {
+  margin: 0 0 8px;
+  font-weight: normal;
+  line-height: 1.1;
+}
+
+.card h1 {
+  font-size: 2.1rem;
+}
+
+.card h2 {
+  font-size: 1.8rem;
+}
+
+.card p {
+  margin: 8px 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  color: var(--pencil);
+}
+
+.card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.card .big-score {
+  font-size: 3.2rem;
+  line-height: 1;
+  margin: 6px 0;
+}
+
+.card .subtle {
+  font-size: 0.95rem;
+  color: var(--pencil);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.95rem;
+  color: var(--red);
+  border: 2px solid var(--red);
+  border-radius: var(--wobbly);
+  padding: 0 8px;
+  transform: rotate(-4deg);
+  margin-left: 6px;
+}
+
+/* ---- Stars --------------------------------------------------------------- */
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 4px;
+}
+
+.star {
+  width: 58px;
+  height: 58px;
+}
+
+.star path {
+  fill: transparent;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  transition: fill 0.15s;
+}
+
+.star.on path {
+  fill: var(--yellow);
+}
+
+.star.pop {
+  animation: star-pop 0.35s ease-out;
+}
+
+@keyframes star-pop {
+  0% { transform: scale(0.4) rotate(-20deg); }
+  70% { transform: scale(1.25) rotate(6deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.stars.mini .star {
+  width: 20px;
+  height: 20px;
+}
+
+.stars.mini .star path {
+  stroke-width: 4;
+}
+
+.stars.mini {
+  gap: 1px;
+  margin: 0;
+  justify-content: flex-start;
+}
+
+.star-goals {
+  margin: 10px auto 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.95rem;
+  color: var(--pencil);
+  display: inline-block;
+  text-align: left;
+}
+
+.star-goals li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

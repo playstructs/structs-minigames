@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf8ee">
+  <title>Structs Minigame Prototypes</title>
+  <link rel="stylesheet" href="shared/ui.css">
+  <style>
+    body {
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: calc(env(safe-area-inset-top, 0px) + 22px) 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+      overflow-x: hidden;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* ---- Cabinet body (cardboard) ---------------------------------------- */
+
+    .cabinet {
+      position: relative;
+      width: min(100%, 440px);
+      min-height: calc(100dvh - 34px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 14px 16px 18px;
+      background-color: var(--cardboard);
+      background-image:
+        repeating-linear-gradient(90deg, rgba(120, 85, 40, 0.10) 0 2px, transparent 2px 7px),
+        radial-gradient(circle at 20% 15%, rgba(255, 240, 210, 0.35), transparent 55%);
+      border: 3.5px solid var(--ink);
+      border-radius: 28px 22px 14px 18px / 18px 26px 12px 16px;
+      box-shadow: 6px 8px 0 rgba(36, 34, 31, 0.85);
+    }
+
+    /* side "panels" of the cardboard box */
+    .cabinet::before,
+    .cabinet::after {
+      content: "";
+      position: absolute;
+      top: 96px;
+      bottom: 40px;
+      width: 2px;
+      background: rgba(36, 34, 31, 0.35);
+    }
+    .cabinet::before { left: 7px; }
+    .cabinet::after { right: 7px; }
+
+    .tape {
+      position: absolute;
+      width: 70px;
+      height: 22px;
+      background: rgba(244, 233, 180, 0.8);
+      border: 1px solid rgba(160, 140, 80, 0.35);
+      z-index: 2;
+    }
+
+    /* ---- Marquee --------------------------------------------------------- */
+
+    .marquee {
+      position: relative;
+      background: var(--yellow);
+      border: 3px solid var(--ink);
+      border-radius: var(--wobbly);
+      padding: 12px 10px 10px;
+      text-align: center;
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.45), 3px 4px 0 rgba(36, 34, 31, 0.85);
+      transform: rotate(-0.6deg);
+    }
+
+    .marquee h1 {
+      margin: 0;
+      font-weight: normal;
+      font-size: clamp(1.55rem, 7.4vw, 2.15rem);
+      line-height: 1.05;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      text-shadow: 2px 2px 0 #fff;
+    }
+
+    .marquee h1 span {
+      display: block;
+      color: var(--red);
+    }
+
+
+    /* ---- Screen ----------------------------------------------------------- */
+
+    .bezel {
+      flex: 1;
+      display: flex;
+      background: #3b3833;
+      border: 3px solid var(--ink);
+      border-radius: 20px 16px 22px 14px / 14px 22px 16px 20px;
+      padding: 14px;
+      box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.25);
+      min-height: 320px;
+    }
+
+    .screen {
+      position: relative;
+      flex: 1;
+      border: 2.5px solid var(--ink);
+      border-radius: 14px 10px 16px 12px / 12px 16px 10px 14px;
+      padding: 14px 12px 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 22px rgba(36, 34, 31, 0.25);
+    }
+
+    .screen-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 0 2px 10px;
+      font-size: 1.25rem;
+    }
+
+    .screen-title small {
+      font-size: 0.85rem;
+      color: var(--pencil);
+    }
+
+    .game-list {
+      list-style: none;
+      margin: 0;
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .game-item {
+      position: relative;
+      display: block;
+      width: 100%;
+      text-align: left;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+      border: 2.5px solid var(--ink);
+      border-radius: var(--wobbly);
+      padding: 10px 12px 10px 34px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 2px 3px 0 rgba(36, 34, 31, 0.7);
+      transition: transform 0.1s;
+    }
+
+    .game-item:nth-child(even) {
+      border-radius: var(--wobbly-2);
+    }
+
+    .game-item .name {
+      display: block;
+      font-size: 1.3rem;
+      line-height: 1.1;
+    }
+
+    .game-item .tagline {
+      display: block;
+      font-size: 0.92rem;
+      color: var(--pencil);
+      margin: 3px 0 6px;
+    }
+
+    .game-item .meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .game-item .cursor {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: var(--red);
+      visibility: hidden;
+    }
+
+    .game-item.selected {
+      background: #fffbe0;
+      transform: rotate(-0.7deg) scale(1.01);
+    }
+
+    .game-item.selected .cursor {
+      visibility: visible;
+      animation: nudge 0.8s ease-in-out infinite;
+    }
+
+    @keyframes nudge {
+      50% { transform: translate(3px, -50%); }
+    }
+
+    .game-item:focus-visible {
+      outline: 3px dashed var(--blue);
+      outline-offset: 3px;
+    }
+
+    .game-item.locked {
+      background: transparent;
+      border-style: dashed;
+      box-shadow: none;
+      color: var(--pencil);
+      cursor: default;
+    }
+
+    .screen-hint {
+      margin: 10px 0 0;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--pencil);
+    }
+
+    /* ---- Control panel ------------------------------------------------------ */
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 12px;
+      background: #b48b54;
+      border: 3px solid var(--ink);
+      border-radius: 14px 18px 10px 16px / 16px 10px 18px 14px;
+      padding: 12px 14px;
+      transform: perspective(500px) rotateX(14deg);
+      transform-origin: top;
+      box-shadow: 0 5px 0 rgba(36, 34, 31, 0.85);
+    }
+
+    .stick {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stick button {
+      width: 48px;
+      height: 40px;
+      font: inherit;
+      font-size: 1.1rem;
+      background: #fff;
+      border: 2.5px solid var(--ink);
+      border-radius: var(--wobbly-2);
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    .stick button:active {
+      transform: translateY(2px);
+    }
+
+    .start-btn {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      font: inherit;
+      font-size: 1.25rem;
+      color: #fff;
+      background: var(--red);
+      border: 3px solid var(--ink);
+      box-shadow: 0 6px 0 #8f2516, 0 8px 0 var(--ink);
+      cursor: pointer;
+      text-shadow: 1px 1px 0 var(--ink);
+      transition: transform 0.06s, box-shadow 0.06s;
+    }
+
+    .start-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 1px 0 #8f2516, 0 3px 0 var(--ink);
+    }
+
+    .start-btn:focus-visible,
+    .stick button:focus-visible {
+      outline: 3px dashed var(--blue);
+      outline-offset: 3px;
+    }
+
+    .coin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .coin .slot {
+      width: 34px;
+      height: 50px;
+      background: #3b3833;
+      border: 2.5px solid var(--ink);
+      border-radius: 6px;
+      position: relative;
+    }
+
+    /* the coin hole: cut through the cardboard, so the graph paper shows */
+    .coin .slot::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 9px;
+      bottom: 9px;
+      width: 8px;
+      transform: translateX(-50%);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 5px 5px;
+      border: 2px solid var(--ink);
+      border-radius: 3px;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(36, 34, 31, 0.75);
+      margin: 0;
+    }
+
+    .launching .screen {
+      animation: flicker 0.35s steps(2) 1;
+    }
+
+    @keyframes flicker {
+      50% { filter: brightness(1.6) contrast(0.6); }
+    }
+  </style>
+</head>
+<body class="graph-paper">
+  <main class="cabinet" id="cabinet">
+    <i class="tape" style="top:-10px;left:30px;transform:rotate(-8deg)"></i>
+    <i class="tape" style="top:-17px;right:26px;transform:rotate(6deg)"></i>
+
+    <header class="marquee">
+      <h1>Structs Minigame <span>Prototypes</span></h1>
+    </header>
+
+    <section class="bezel" aria-label="Game selection screen">
+      <div class="screen graph-paper">
+        <div class="screen-title">
+          <span>Select a game</span>
+          <small id="count"></small>
+        </div>
+        <ul class="game-list" id="list" role="listbox" aria-label="Minigames"></ul>
+        <p class="screen-hint" id="hint">Tap a game, then press Start</p>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Controls">
+      <div class="stick">
+        <button type="button" id="up" aria-label="Previous game">▲</button>
+        <button type="button" id="down" aria-label="Next game">▼</button>
+      </div>
+      <button class="start-btn" id="start" type="button">START</button>
+      <div class="coin" aria-hidden="true">
+        <div class="slot"></div>
+        <span>FREE<br>PLAY</span>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p class="footer-note">Scores are saved on this device.</p>
+      <button class="paper-btn icon" id="mute" type="button" aria-label="Mute sound"></button>
+    </footer>
+  </main>
+
+  <script type="module">
+    import { GAMES } from './games.js';
+    import { getRecord } from './shared/storage.js';
+    import { audio } from './shared/audio.js';
+    import { renderStars } from './shared/ui.js';
+
+    const list = document.getElementById('list');
+    const cabinet = document.getElementById('cabinet');
+    const LOCKED_SLOTS = 2;
+    let selected = 0;
+    let launching = false;
+
+    function build() {
+      list.innerHTML = '';
+      GAMES.forEach((game, i) => {
+        const rec = getRecord(game.id);
+        const li = document.createElement('li');
+        li.className = 'game-item';
+        li.setAttribute('role', 'option');
+        li.tabIndex = 0;
+        li.dataset.index = i;
+        li.innerHTML = `
+          <span class="cursor" aria-hidden="true">▶</span>
+          <span class="name"></span>
+          <span class="tagline"></span>
+          <span class="meta"><span class="hs"></span></span>`;
+        li.querySelector('.name').textContent = game.name;
+        li.querySelector('.tagline').textContent = game.tagline;
+        const meta = li.querySelector('.meta');
+        meta.prepend(renderStars(rec.bestStars, { mini: true }));
+        li.querySelector('.hs').textContent = `High score: ${game.formatScore(rec.highScore)}`;
+        li.addEventListener('click', () => {
+          audio.unlock();
+          if (selected === i) launch();
+          else select(i);
+        });
+        li.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            select(i, false);
+            launch();
+          }
+        });
+        list.appendChild(li);
+      });
+      for (let i = 0; i < LOCKED_SLOTS; i++) {
+        const li = document.createElement('li');
+        li.className = 'game-item locked';
+        li.setAttribute('aria-disabled', 'true');
+        li.innerHTML = '<span class="name">? ? ?</span><span class="tagline">Coming soon</span>';
+        list.appendChild(li);
+      }
+      document.getElementById('count').textContent = `${GAMES.length} ${GAMES.length === 1 ? 'game' : 'games'}`;
+      select(selected, false);
+    }
+
+    function select(i, sound = true) {
+      selected = (i + GAMES.length) % GAMES.length;
+      list.querySelectorAll('.game-item:not(.locked)').forEach((el, j) => {
+        el.classList.toggle('selected', j === selected);
+        el.setAttribute('aria-selected', j === selected);
+        if (j === selected) el.scrollIntoView({ block: 'nearest' });
+      });
+      if (sound) audio.sfx('move');
+    }
+
+    function launch() {
+      if (launching) return;
+      launching = true;
+      audio.unlock();
+      audio.sfx('start');
+      cabinet.classList.add('launching');
+      setTimeout(() => {
+        location.href = `${GAMES[selected].id}/`;
+      }, 420);
+    }
+
+    document.getElementById('up').addEventListener('click', () => { audio.unlock(); select(selected - 1); });
+    document.getElementById('down').addEventListener('click', () => { audio.unlock(); select(selected + 1); });
+    document.getElementById('start').addEventListener('click', launch);
+
+    addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); audio.unlock(); select(selected - 1); }
+      else if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); audio.unlock(); select(selected + 1); }
+      else if (e.key === 'Enter' && document.activeElement === document.body) launch();
+    });
+
+    // Mute toggle
+    const mute = document.getElementById('mute');
+    const ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z"/><path d="M16.5 9 Q18.5 12 16.5 15"/><path d="M19 6.5 Q23 12 19 17.5"/></svg>';
+    const ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z"/><path d="M17 9.5 L22 14.5 M22 9.5 L17 14.5"/></svg>';
+    const paintMute = () => {
+      mute.innerHTML = audio.muted ? ICON_OFF : ICON_ON;
+      mute.setAttribute('aria-label', audio.muted ? 'Unmute sound' : 'Mute sound');
+    };
+    mute.addEventListener('click', () => { audio.unlock(); audio.setMuted(!audio.muted); });
+    audio.onMuteChange(paintMute);
+    paintMute();
+
+    // Coming back with the browser's Back button can restore this page from
+    // cache, so refresh scores and reset the launch state.
+    addEventListener('pageshow', () => {
+      launching = false;
+      cabinet.classList.remove('launching');
+      build();
+    });
+  </script>
+</body>
+</html>
