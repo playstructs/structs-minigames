@@ -37,4 +37,10 @@ export const GAMES = [
     tagline: 'Plug the loose wires back in. Mind the tears in space-time.',
     formatScore: (s) => (s == null ? '--' : `${s} wire${s === 1 ? '' : 's'}`),
   },
+  {
+    id: 'machine-chemical-romance',
+    name: 'Machine Chemical Romance',
+    tagline: 'Mix the right chemicals and keep the machines running.',
+    formatScore: (s) => (s == null ? '--' : `${s} pts`),
+  },
 ];
