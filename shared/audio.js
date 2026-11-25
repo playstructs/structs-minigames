@@ -16,6 +16,15 @@ export function noteFreq(name) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+const parseSteps = (s) => (s || '').trim().split(/\s+/).filter(Boolean);
+const parseTracks = (song) => ({
+  p1: parseSteps(song.tracks.p1),
+  p2: parseSteps(song.tracks.p2),
+  tri: parseSteps(song.tracks.tri),
+  noise: parseSteps(song.tracks.noise),
+});
+const stepDurOf = (song) => 60 / song.bpm / (song.stepsPerBeat || 4);
+
 class NesAudio {
   constructor() {
     this.ctx = null;
@@ -197,25 +206,30 @@ class NesAudio {
   playSong(song) {
     this.stopSong();
     if (!this.ctx) return;
-    const parse = (s) => (s || '').trim().split(/\s+/).filter(Boolean);
-    const tracks = {
-      p1: parse(song.tracks.p1),
-      p2: parse(song.tracks.p2),
-      tri: parse(song.tracks.tri),
-      noise: parse(song.tracks.noise),
-    };
-    const stepDur = 60 / song.bpm / (song.stepsPerBeat || 4);
-    const state = { song, tracks, stepDur, step: 0, nextTime: this.ctx.currentTime + 0.05, timer: null };
+    const state = { song, tracks: parseTracks(song), stepDur: stepDurOf(song), step: 0, nextTime: this.ctx.currentTime + 0.05, timer: null };
     const schedule = () => {
       while (state.nextTime < this.ctx.currentTime + 0.15) {
         this.scheduleStep(state, state.step, state.nextTime - this.ctx.currentTime);
         state.step++;
-        state.nextTime += stepDur;
+        state.nextTime += state.stepDur;
       }
       state.timer = setTimeout(schedule, 30);
     };
     this.song = state;
     schedule();
+  }
+
+  // Swap the playing song's tempo and parts without restarting it, so the
+  // beat carries on (e.g. to speed up as a game goes on). Starts it if
+  // nothing is playing.
+  updateSong(song) {
+    if (!this.song) {
+      this.playSong(song);
+      return;
+    }
+    this.song.song = song;
+    this.song.tracks = parseTracks(song);
+    this.song.stepDur = stepDurOf(song);
   }
 
   scheduleStep(state, step, at) {

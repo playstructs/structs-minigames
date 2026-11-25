@@ -25,4 +25,10 @@ export const GAMES = [
     tagline: 'Shoot down raiders before they slip past. Unlocks with the PDC.',
     formatScore: (s) => (s == null ? '--' : `${s} pts`),
   },
+  {
+    id: 'we-be-jammin',
+    name: "We Be Jammin'",
+    tagline: 'Fly your satellite and jam smart missiles. How long can you last?',
+    formatScore: (s) => (s == null ? '--' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`),
+  },
 ];
