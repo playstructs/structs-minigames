@@ -31,4 +31,10 @@ export const GAMES = [
     tagline: 'Fly your satellite and jam smart missiles. How long can you last?',
     formatScore: (s) => (s == null ? '--' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`),
   },
+  {
+    id: 'reconnet',
+    name: 'Reconnet',
+    tagline: 'Plug the loose wires back in. Mind the tears in space-time.',
+    formatScore: (s) => (s == null ? '--' : `${s} wire${s === 1 ? '' : 's'}`),
+  },
 ];
