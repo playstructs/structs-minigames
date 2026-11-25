@@ -1,4 +1,4 @@
-# Reconnet
+# Reconnect
 
 Plug loose wires back into their matching sockets before time runs out. Your
 bot is awkward, the wires are stiff, and the floor is full of things you
@@ -96,7 +96,7 @@ first board (3 wires) in about 30 s, and typical runs got 0–2. A person who
 watches the wire should do much better, so treat the star thresholds as a
 guess until someone has played it.
 
-`?debug` exposes `window.reconnet`:
+`?debug` exposes `window.reconnect`:
 - `board(n)` jumps to board n.
 - `sim(seconds, act, every)` fast-forwards a run (`act` sets
   `state.input = { x, y, grab }`).

@@ -6,7 +6,7 @@ import { GAMES } from '../games.js';
 
 // ---- Tuning --------------------------------------------------------------
 
-const GAME_ID = 'reconnet';
+const GAME_ID = 'reconnect';
 const STAR_WIRES = [3, 6, 9]; // wires reconnected for 1, 2 and 3 stars
 const TIME_LIMIT = 90; // seconds
 const CLEAR_BONUS = 10; // seconds added for clearing a board
@@ -1205,7 +1205,7 @@ function showStart() {
   const card = document.createElement('div');
   card.className = 'card';
   card.innerHTML = `
-    <h1>Reconnet</h1>
+    <h1>Reconnect</h1>
     <p>Plug each loose wire into the socket that matches its colour and symbol before time runs out.</p>
     <p class="subtle"><b>Drag</b> anywhere to move your bot. Press <b>Grab</b> to grab the wire nearest its claw, anywhere along it, and <b>Release</b> to let go. Wires are stiff and can't stretch, and they snag on crates.<br>Keyboard: arrows / WASD to move, Space to grab or release.</p>
     <p class="subtle">Don't let your bot or a wire touch a <b style="color:#8a3fc4">space-time tear</b> or a <b>hole</b>. Clear a board for +${CLEAR_BONUS}s.</p>
@@ -1283,7 +1283,7 @@ layout();
 showStart();
 
 if (new URLSearchParams(location.search).has('debug')) {
-  window.reconnet = {
+  window.reconnect = {
     get state() { return state; },
     start,
     consts: { W, H, SEG, REACH, SNAP, BOT_SPEED, PARTS, WALL },
