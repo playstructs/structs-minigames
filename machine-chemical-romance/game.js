@@ -439,6 +439,9 @@ function setWalkTarget(x, y) {
   const below = MACHINE_WALL.y + MACHINE_WALL.h + PLAYER_R;
   if (t.y < below) t.y = below;
   solid(t);
+  // Remember which station (if any) this walk ends at, so arriving at the
+  // bin on purpose dumps straight away while walking past it doesn't.
+  p.dest = stationAt(t.x, t.y);
   p.path = planPath({ x: p.x, y: p.y }, t);
   const n = p.path.shift();
   p.tx = n.x;
@@ -457,6 +460,7 @@ function updatePlayer(dt) {
     vy = k.y;
     p.tx = null;
     p.path = [];
+    p.dest = null;
   } else if (p.tx != null) {
     const dx = p.tx - p.x;
     const dy = p.ty - p.y;
@@ -501,10 +505,20 @@ function updatePlayer(dt) {
       if (autoTake()) state.synthDismissed = true;
     } else closeSynth();
   }
-  // Stopping at the bin dumps what you carry, and stopping at the
-  // synthesizer opens its menu. Just walking past either does neither.
+  // Reaching the bin on purpose dumps what you carry: a tap or drag that
+  // ends on it, pushing towards it with the keys, or stopping beside it.
+  // Walking past it on the way somewhere else doesn't. Stopping at the
+  // synthesizer opens its menu.
   const stopped = p.tx == null && !(k.x || k.y);
-  if (stopped && at === 'bin' && p.carry) dump();
+  if (at === 'bin' && p.carry) {
+    // With the keys, it's when you're up against the bin and pushing into it.
+    const nx = clamp(p.x, BIN_BOX.x, BIN_BOX.x + BIN_BOX.w) - p.x;
+    const ny = clamp(p.y, BIN_BOX.y, BIN_BOX.y + BIN_BOX.h) - p.y;
+    const touching = Math.hypot(nx, ny) <= PLAYER_R + 1;
+    const keysTowards = touching && (k.x || k.y) && k.x * nx + k.y * ny > 0;
+    const headedHere = p.tx != null && !(k.x || k.y) && p.dest === 'bin';
+    if (stopped || keysTowards || headedHere) dump();
+  }
   if (stopped && at === 'synth' && !synthOpen && !state.synthDismissed && !silent) openSynth();
 }
 

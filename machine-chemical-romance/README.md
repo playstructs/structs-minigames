@@ -64,8 +64,13 @@ and deliver each flask to the right machine before its request runs out.
   Walking past a different machine does nothing, so a flask can never go to
   the wrong machine. That drops the spec's wrong-machine penalty: there's no
   way to trigger it.
-- **Waste bin:** stop at it and it automatically dumps whatever you're
-  carrying, for free. Walking past it doesn't.
+- **Waste bin:** go to it and it automatically dumps whatever you're
+  carrying, for free, the moment you get there. That's when:
+  - a tap or drag ends on or next to the bin;
+  - you push into it with the keys;
+  - or you stop right beside it.
+
+  Walking past it on the way somewhere else doesn't dump.
 
 ## Controls
 
