@@ -1,7 +1,5 @@
 # Last Line of Defense
 
-Unlocks with: **Planetary Defense Cannon**.
-
 A carnival-style shooting gallery. Raiders scroll past in their ambits; shoot
 them down with the Planetary Defense Cannon before they get by.
 

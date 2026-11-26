@@ -1327,7 +1327,6 @@ function showStart() {
   card.className = 'card';
   card.innerHTML = `
     <h1>Last Line of Defense</h1>
-    <p class="subtle"><span class="badge" style="margin:0">Unlocks with: Planetary Defense Cannon</span></p>
     <p>Raiders are scrolling past in every ambit. Shoot them down before they get by. Each one that escapes damages your planet.</p>
     <ul class="targets"></ul>
     <p class="subtle">Tap or click to fire. Hold to keep firing.<br>It gets faster and busier the longer you hold out.</p>

@@ -22,7 +22,7 @@ export const GAMES = [
   {
     id: 'last-line-of-defense',
     name: 'Last Line of Defense',
-    tagline: 'Shoot down raiders before they slip past. Unlocks with the PDC.',
+    tagline: 'Shoot down raiders before they slip past.',
     formatScore: (s) => (s == null ? '--' : `${s} pts`),
   },
   {
