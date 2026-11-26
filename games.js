@@ -43,4 +43,10 @@ export const GAMES = [
     tagline: 'Mix the right chemicals and keep the machines running.',
     formatScore: (s) => (s == null ? '--' : `${s} pts`),
   },
+  {
+    id: 'mine-blaster',
+    name: 'Mine Blaster',
+    tagline: 'Line up the drifting shaft so the laser hits the ore.',
+    formatScore: (s) => (s == null ? '--' : `${s} pts`),
+  },
 ];
