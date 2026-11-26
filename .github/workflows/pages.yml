@@ -1,0 +1,51 @@
+# Publishes the minigames to GitHub Pages (mini.strudle.net) on every push
+# to main. The site is plain static files, so there's no build: the job just
+# copies the files players need into _site and uploads that.
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push replaces a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect site files
+        # Everything except development files (.git, .github, .idea, .claude)
+        # and Markdown notes.
+        run: |
+          mkdir _site
+          rsync -a \
+            --exclude '.*' \
+            --exclude '_site' \
+            --exclude '*.md' \
+            --exclude 'LICENSE' \
+            ./ _site/
+          touch _site/.nojekyll
+          find _site -type f | sort
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
