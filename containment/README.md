@@ -16,13 +16,15 @@ and mitigate them until the fleet returns.
 
 | Attack | What it does | How to deal with it |
 |---|---|---|
-| DDoS | Floods the log from a few sources posing as crew; each adds CPU load and fills the log buffer (memory) | Spot sources that appear far too often, tap one of their lines, **Ban** |
+| DDoS | Floods the log from a few sources posing as crew; each adds CPU load and fills the log buffer (memory) | Spot sources that appear far too often, select one of their lines, then press **Ban** |
 | Worm | Copies itself every ~8 s; each copy uses CPU and memory | **Antivirus** removes every copy; **Kill** buys time |
 | Trojan | Named to look like a real process (`kerneI`, `nav-synk`, `comms-reIay`…); memory grows steadily | Watch for growing memory (↑) and near-miss names; **Antivirus** |
 | CPU virus | Uses ~42% CPU, which throttles everything else (including Antivirus) | **Kill** it first, then Antivirus |
 
 ## Countermeasures
 
+- Every countermeasure works the same way: select a process or log line, then
+  press its button.
 - **Kill** (Task Killer): frees the process's CPU and memory immediately, but a
   virus restarts 10 s later. Killing a real system process makes it restart with
   a CPU spike; `kernel` is protected.
@@ -30,7 +32,8 @@ and mitigate them until the fleet returns.
   4 memory blocks and 8% CPU while it runs. Speed depends on free CPU: ~4 s on an
   idle server, ~10× slower when the CPU is maxed. One scan at a time. Scanning a
   real program finds nothing (time wasted).
-- **Ban** (Ban Hammer): blocks a log source. Banning a real crew member files a
+- **Ban** (Ban Hammer): blocks a log source. Select one of its lines first, then
+  press Ban under the log or in the bottom bar. Banning a real crew member files a
   complaint and locks the hammer for 5 s.
 - Kills and bans take longer when the CPU is throttled.
 
@@ -67,7 +70,13 @@ Real players also have to identify the attackers, so expect results between
   colours, so colour doesn't reveal them). Tap a block to select its process.
   The top-right estimate shows time until breach at the current growth rate.
 - Process list: newest first. Tap a row, then Kill or Antivirus in the bottom bar.
-- Log: tap a line to highlight every line from that source and offer Ban. Touching
-  the log pauses it so lines don't move under your finger.
+- Log: tap a line to select its source and highlight every line from it.
+  Selecting doesn't ban anything: press Ban to block it. Two buttons sit under
+  the log:
+  - **Pause / Play** freezes the log so you can read it. The game keeps
+    running; new lines queue up and appear when you press Play.
+  - **Ban** bans the selected source and shows its address. It's greyed out
+    until you pick a line, and shows the cooldown after banning a crew member.
+    The same Ban is also in the bottom bar.
 - `?debug` exposes `window.containment`, including `sim(seconds, each, every)` to
   fast-forward the simulation for balance testing.

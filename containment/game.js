@@ -84,6 +84,8 @@ const memGrid = document.getElementById('mem-grid');
 const procList = document.getElementById('proc-list');
 const logEl = document.getElementById('log');
 const logPanel = document.getElementById('log-panel');
+const logPauseBtn = document.getElementById('log-pause');
+const logBanBtn = document.getElementById('log-ban');
 const actionBar = document.getElementById('action-bar');
 const formatScore = GAMES.find((g) => g.id === GAME_ID).formatScore;
 
@@ -178,7 +180,10 @@ function clock() {
 
 function log(text, cls = 'net', ip = null) {
   const line = { text: `${clock()} ${text}`, cls, ip };
-  if (logPaused) logQueue.push(line);
+  if (logPaused) {
+    logQueue.push(line);
+    if (logQueue.length > 120) logQueue.shift(); // the log only keeps 120 lines anyway
+  }
   else appendLog(line);
 }
 
@@ -208,18 +213,47 @@ function isBanned(ip) {
   return state.attackers.some((a) => a.ip === ip && a.banned) || state.users.some((u) => u.ip === ip && u.banned);
 }
 
-// Hold the log to stop it scrolling while you read it.
-logEl.addEventListener('pointerdown', () => {
-  logPaused = true;
-  logPanel.classList.add('paused');
+// Pause/Play button under the log: freezes the lines so you can read them.
+// The game keeps running; new lines queue up and appear when you resume.
+const ICON_PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg>';
+const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2 L14 8 L4 14 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+
+function setLogPaused(paused) {
+  logPaused = paused;
+  logPanel.classList.toggle('paused', paused);
+  logPauseBtn.setAttribute('aria-pressed', String(paused));
+  logPauseBtn.innerHTML = paused ? `${ICON_PLAY}Play` : `${ICON_PAUSE}Pause`;
+  if (!paused) logQueue.splice(0).forEach(appendLog);
+}
+setLogPaused(false);
+
+logPauseBtn.addEventListener('click', () => {
+  if (state.phase !== 'playing') return;
+  sfx('select');
+  setLogPaused(!logPaused);
 });
-const resumeLog = () => {
-  if (!logPaused) return;
-  logPaused = false;
-  logPanel.classList.remove('paused');
-  logQueue.splice(0).forEach(appendLog);
-};
-['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => logEl.addEventListener(t, resumeLog));
+logBanBtn.addEventListener('click', () => {
+  const sel = state.selected;
+  if (logBanBtn.disabled || state.phase !== 'playing' || sel?.type !== 'ip') return;
+  ban(sel.ip);
+  lastBarKey = '';
+  renderClock = 0;
+});
+
+let lastLogBanKey = '';
+function renderLogBan() {
+  const s = state;
+  const sel = s.selected?.type === 'ip' ? s.selected : null;
+  const banned = sel && isBanned(sel.ip);
+  const cd = Math.ceil(s.banCooldown);
+  const key = `${sel?.ip}|${banned}|${cd}|${s.banCooldown > 0}`;
+  if (key === lastLogBanKey) return;
+  lastLogBanKey = key;
+  logBanBtn.disabled = !sel || banned || s.banCooldown > 0;
+  if (!sel) logBanBtn.textContent = 'Ban';
+  else if (banned) logBanBtn.innerHTML = `Banned <span class="ip">${sel.ip}</span>`;
+  else logBanBtn.innerHTML = `Ban <span class="ip">${sel.ip}</span>${s.banCooldown > BAN_COOLDOWN + 0.5 ? ` (${cd}s)` : ''}`;
+}
 logEl.addEventListener('click', (e) => {
   const line = e.target.closest('.log-line[data-ip]');
   if (!line || state.phase !== 'playing') return;
@@ -547,6 +581,7 @@ function render(dt) {
 
   renderProcs();
   renderActionBar();
+  renderLogBan();
 }
 
 // Which process owns each memory block, in process order.
@@ -659,11 +694,11 @@ function renderActionBar() {
     const cd = Math.ceil(s.banCooldown);
     key = `i${sel.ip}|${banned}|${cd}`;
     html = `
-      <div class="target"><b>${sel.ip}</b><span class="hint">${banned ? 'banned' : 'highlighted in the log'}</span></div>
+      <div class="target"><b>${sel.ip}</b><span class="hint">${banned ? 'banned' : 'selected · press Ban to block it'}</span></div>
       <button class="paper-btn ban" type="button" data-act="ban" ${banned || s.banCooldown > 0 ? 'disabled' : ''}>${!banned && s.banCooldown > BAN_COOLDOWN + 0.5 ? `Ban (${cd}s)` : 'Ban'}</button>`;
   } else {
     key = `none|${!!s.av}`;
-    html = `<div class="target"><span class="hint">Tap a process to <b style="display:inline;font-family:inherit">Kill</b> or run <b style="display:inline;font-family:inherit">Antivirus</b>.<br>Tap a log line to <b style="display:inline;font-family:inherit">Ban</b> its source.</span></div>`;
+    html = `<div class="target"><span class="hint">Select a process, then <b style="display:inline;font-family:inherit">Kill</b> or <b style="display:inline;font-family:inherit">Antivirus</b>.<br>Select a log line, then <b style="display:inline;font-family:inherit">Ban</b> its source.</span></div>`;
   }
   if (key === lastBarKey) return;
   lastBarKey = key;
@@ -757,9 +792,10 @@ function showStart() {
     <h1>Containment</h1>
     <p>Enemy hackers are hitting the planetary shield's server. Keep it alive for <b>${fmt(FLEET_TIME)}</b> until the fleet returns, then keep going in overtime for a high score. <b style="color:var(--red)">If memory fills up, the shield is breached.</b></p>
     <ul class="tools">
+      <li>Select a process or a log line, then press a button to act on it.</li>
       <li><b>Kill</b> a process: frees its CPU and memory, but a virus restarts in ${KILL_RESPAWN}s. Killing a real system process causes trouble.</li>
       <li><b>Antivirus</b>: removes a whole infection for good. Needs ${AV.mem} memory blocks and runs slowly when the CPU is maxed.</li>
-      <li><b>Ban</b>: tap a log line to ban its source. Floods come from sources that show up far too often. Hold the log to pause it.</li>
+      <li><b>Ban</b> a log line's source: select the line, then press <b>Ban</b> under the log or in the bottom bar. Floods come from sources that show up far too often. <b>Pause</b> freezes the log while you read it.</li>
     </ul>
     <ul class="star-goals"></ul>
     <div class="best"></div>
@@ -790,6 +826,8 @@ function start() {
   rowEls.clear();
   logEl.innerHTML = '';
   logQueue.length = 0;
+  setLogPaused(false);
+  lastLogBanKey = '';
   serverEl.classList.remove('breached');
   lastBarKey = '';
   renderClock = 0;

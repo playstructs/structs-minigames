@@ -296,6 +296,29 @@
     .log-line.hl { background: rgba(244, 196, 48, 0.45); }
     .log-line.banned { text-decoration: line-through; color: var(--pencil); }
     .log.paused h2 small::after { content: " · paused"; color: var(--red); }
+    .log.paused .log-lines { box-shadow: inset 0 0 0 2px rgba(217, 65, 43, 0.5); }
+    .log-foot {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .log-foot .paper-btn {
+      font-size: 1rem;
+      padding: 0.2em 0.7em;
+      min-height: 42px;
+      box-shadow: 2px 3px 0 rgba(36, 34, 31, 0.85);
+      touch-action: manipulation;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .log-foot .paper-btn svg { width: 16px; height: 16px; flex: none; }
+    .log-pause { flex: 0 0 auto; min-width: 6.5em; }
+    .log-pause[aria-pressed="true"] { background: var(--yellow); }
+    .log-ban { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log-ban .ip { font-family: var(--mono); font-size: 0.9rem; }
+    .log-foot .paper-btn:disabled { opacity: 0.4; cursor: default; }
 
     /* ---- Action bar ------------------------------------------------------------ */
     .action-bar {
@@ -386,8 +409,12 @@
       </section>
 
       <section class="panel log" id="log-panel" aria-label="System log">
-        <h2>Log <small>hold to pause · tap a line</small></h2>
+        <h2>Log <small>tap a line to pick its source</small></h2>
         <div class="log-lines" id="log" aria-live="off"></div>
+        <div class="log-foot">
+          <button class="paper-btn log-pause" id="log-pause" type="button" aria-pressed="false"></button>
+          <button class="paper-btn ban log-ban" id="log-ban" type="button" disabled>Ban</button>
+        </div>
       </section>
     </div>
 
